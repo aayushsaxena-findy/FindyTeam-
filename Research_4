@@ -1,0 +1,31 @@
+from datetime import datetime
+
+def check_repo_activity(username):
+    url = f"https://api.github.com/users/{username}/repos?sort=updated"
+    response = requests.get(url)
+
+    if response.status_code == 200:
+        repos = response.json()
+        print(f"\n📊 Activity Report for: {username}")
+        print(f"{'Repository Name':<30} | {'Last Updated':<15} | {'Status'}")
+        print("-" * 65)
+
+        for repo in repos[:10]:  # Only look at the top 10 most recent
+            name = repo['name']
+            
+            # Parse the timestamp from GitHub (e.g., "2023-10-05T14:30:00Z")
+            last_push = datetime.strptime(repo['pushed_at'], "%Y-%m-%dT%H:%M:%SZ")
+            days_ago = (datetime.now() - last_push).days
+            
+            # Determine status based on "Recency"
+            if days_ago < 7:
+                status = "🔥 Active"
+            elif days_ago < 30:
+                status = "💤 Sleeping"
+            else:
+                status = "🕸️ Dormant"
+
+            print(f"{name:<30} | {days_ago} days ago    | {status}")
+            
+    else:
+        print("Error fetching repositories.")
